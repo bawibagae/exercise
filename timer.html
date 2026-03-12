@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운동 대시보드</title>
+    <style>
+        #stopwatch{width:300px; height:300px; border-radius: 50%; background-color: transparent; display: flex; justify-content: center; align-items: center; border: 5px solid #000;}
+        .container { display: flex; text-align: center; flex-direction: column; align-items: center; justify-content: center; width: 100%;}
+        .start{padding: 50px;}
+        select{font-size: 20px;}
+        .menu-bar {display: flex; justify-content: center; gap: 100px; padding: 20px; background-color: #f8f8f8;}
+        .menu-bar a {text-decoration: none; color: black; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="menu-bar">
+            <a href="index.html">home</a>
+            <a href="timer.html">타이머</a>
+        </nav>
+
+        <h1>칼로리 타이머</h1>
+        <select>
+            <option type="select">축구</option>
+            <option type="select">배드민턴</option>
+            <option type="select">배구</option>
+            <option type="select">런닝머신</option>
+            <option type="select">헬스</option>
+        </select>
+    </header>
+    <div class="container">
+        <div>
+            <span id="stopwatch">00:00:00</span>
+                <span id="current-kcal">0</span>kcal 소모중
+            <div class="start">
+                <input type="button" value="시작">
+                <input type="button" value="기록">
+                <input type="button" value="초기화">
+            </div>
+        </div>
+    </div>
+</body>
+    <script>
+    let startTime;
+    let elapsedTime = 0;
+    let timerId = null;
+
+    // 1. HTML 요소 가져오기
+    const display = document.getElementById('stopwatch');
+    const kcalDisplay = document.getElementById('current-kcal');
+    const sportsSelect = document.querySelector('select');
+    
+    const startBtn = document.querySelector('input[value="시작"]');
+    const recordBtn = document.querySelector('input[value="기록"]');
+    // '칼로리 출력'이라고 적힌 버튼을 초기화 버튼(resetBtn)으로 정의합니다.
+    const resetBtn = document.querySelector('input[value="초기화"]');
+
+    // 초기화 버튼으로 이름 변경
+    if(resetBtn) resetBtn.value = "초기화";
+
+    // 2. 종목별 초당 소모 칼로리 데이터
+    const kcalRate = {
+        "축구": 500 / 3600,
+        "배드민턴": 700 / 3600,
+        "배구": 188 / 3600,
+        "런닝머신": 350 / 3600,
+        "헬스": 600 / 3600
+    };
+
+    // 시간 포맷 함수
+    function timeToString(time) {
+        let hh = Math.floor(time / 3600000);
+        let mm = Math.floor((time % 3600000) / 60000);
+        let ss = Math.floor((time % 60000) / 1000);
+        return hh.toString().padStart(2, "0") + ":" + 
+               mm.toString().padStart(2, "0") + ":" + 
+               ss.toString().padStart(2, "0");
+    }
+
+    // 화면 갱신 함수
+    function update() {
+        const now = Date.now();
+        const diff = now - startTime;
+        const totalSeconds = Math.floor(diff / 1000);
+
+        display.innerText = timeToString(diff);
+
+        const selectedSport = sportsSelect.value;
+        const rate = kcalRate[selectedSport] || 0;
+        const totalKcal = totalSeconds * rate;
+
+        kcalDisplay.innerText = totalKcal.toFixed(2);
+    }
+
+    // [시작/정지] 클릭 이벤트
+    startBtn.addEventListener('click', function() {
+        if (this.value === "시작" || this.value === "다시 시작") {
+            this.value = "정지";
+            startTime = Date.now() - elapsedTime;
+            timerId = setInterval(update, 1000);
+        } else {
+            this.value = "다시 시작";
+            elapsedTime = Date.now() - startTime;
+            clearInterval(timerId);
+            timerId = null;
+        }
+    });
+
+    // [기록] 클릭 이벤트
+    recordBtn.addEventListener('click', function() {
+        const currentSport = sportsSelect.value;
+        const currentTime = display.innerText;
+        const currentKcal = kcalDisplay.innerText;
+        alert(`[${currentSport}] 기록\n시간: ${currentTime}\n소모 칼로리: ${currentKcal}kcal`);
+    });
+
+    // [초기화] 클릭 이벤트 (수정됨)
+    resetBtn.addEventListener('click', function() {
+        // 타이머 멈추기
+        clearInterval(timerId);
+        timerId = null;
+
+        // 변수 및 화면 리셋
+        elapsedTime = 0;
+        display.innerText = "00:00:00";
+        kcalDisplay.innerText = "0";
+        startBtn.value = "시작";
+    });
+</script>
+</html>
